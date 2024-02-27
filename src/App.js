@@ -7,6 +7,7 @@ import { useState } from "react";
 //   { id: 3, description: "Power Bank", quantity: 1, packed: true },
 // ];
 
+
 //parent component
 export default function App() {
   //destructuring array states
@@ -22,20 +23,28 @@ export default function App() {
     setItems(updatedItems);
   }
 
+  function handleUpdateItem(id) {
+    setItems((items) =>
+      items.map((item) =>
+        item.id === id ? { ...item, packed: !item.packed } : item
+      )
+    );
+  }
+
   //render components inside parent
   return (
     <div className="app">
       <Logo />
       <Form onAddItems={handleAddItems} />
-      <PackingList items={items} onDeleteItem={handleDeleteItem}/>
-      <Stats />
+      <PackingList items={items} onDeleteItem={handleDeleteItem} onUpdateItem={handleUpdateItem}/>
+      <Stats items={items}/>
     </div>
   );
 }
 
 //component logo
 function Logo() {
-  return <h1> 🤫🧏‍♀️ JALAN JALAN KUY</h1>;
+  return <h1> JALAN JALAN KUY</h1>;
 }
 
 //component form
@@ -51,7 +60,7 @@ function Form({ onAddItems }) {
     //if empty description
     if (!description) return;
 
-    const newItem = { description, quantity, packed: false, id: Date.now() };
+    const newItem = { description, quantity, packed: false, };
     console.log(newItem); //testing new data
 
     //store new item in array from parent state
@@ -64,8 +73,8 @@ function Form({ onAddItems }) {
 
   return (
     <form className="add-form" onSubmit={handleSubmit}>
-      <h3>Apa aja yang dibawa 🤫🧏‍♀️</h3>
-      <h3>Checklist Barang 🥵 </h3>
+      <h3>Apa aja yang akan dibawa </h3>
+      {/* <h3>Checklist Barang  </h3> */}
       <select
         value={quantity}
         onChange={(e) => setQuantity(Number(e.target.value))}
@@ -75,19 +84,19 @@ function Form({ onAddItems }) {
         ))}
       </select>
       <input type="text" placeholder="Barang yang mau dibawa" value={description} onChange={(e) => setDescription(e.target.value)}/>
-      <button>Bawa ❓</button>
+      <button>Bawa </button>
     </form>
   );
 }
 
 //child component PackingList
-function PackingList({ items, onDeleteItem }) {
+function PackingList({ items, onDeleteItem, onUpdateItem}) {
 
   return (
     <div className="list">
       <ul>
         {items.map((item) => (
-          <Item item={item} key={item.id} onDelete={() => onDeleteItem(item.id)}  />
+          <Item item={item} key={item.id} onDelete={() => onDeleteItem(item.id)}  onUpdateItem={onUpdateItem}  />
         ))}
       </ul>
     </div>
@@ -95,9 +104,14 @@ function PackingList({ items, onDeleteItem }) {
 }
 
 //component PackingList
-function Item({ item, onDelete}) {
+function Item({ item, onDelete, onUpdateItem}) {
   return (
     <li>
+       <input
+        type="checkbox"
+        value={item.packed}
+        onChange={() => onUpdateItem(item.id)}
+      />
       {/* ternary operator to check condition */}
 
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>
@@ -109,11 +123,25 @@ function Item({ item, onDelete}) {
 }
 
 //child Component
-function Stats() {
+function Stats({items}) {
+
+  if (!items.length)
+
+  return (
+    <p className="stats">
+      <em>Mulai Tambahkan Barang</em>
+    </p>
+  );
+
+  const numItems = items.length;
+  const numPacked = items.filter((item) => item.packed).length;
+  const percentage = Math.round((numPacked / numItems) * 100)
+
   return (
     <footer className="stats">
       <em>
-        💼 Kamu punya 0 barang di daftar, dan sudah packing 0 barang (0%){" "}
+        {percentage === 100 ? "siap berangkat?" :
+        `💼 Kamu punya ${numItems} barang di daftar, dan sudah packing ${numPacked} barang (${percentage }%)`}
       </em>
     </footer>
   );
